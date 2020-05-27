@@ -33,8 +33,6 @@ public class ImageInfoView {
 
     // Chart beinhaltet Anzahl der einzelnen Grauwerte
     private LineChart<Number, Number> chartGrayValues;
-    private NumberAxis                xAxis;
-    private NumberAxis                yAxis;
 
     public ImageInfoView() {
         this.createWidgets();
@@ -57,10 +55,10 @@ public class ImageInfoView {
         this.fldInformation.setEditable(true);
         this.fldInformation.setWrapText(true);
 
-        this.xAxis = new NumberAxis("Grauwert", 0, 255, 10);
-        this.yAxis = new NumberAxis();
-        this.yAxis.setLabel("Anzahl der Grauwerte");
-        this.chartGrayValues = new LineChart<>(this.xAxis, this.yAxis);
+        NumberAxis xAxis = new NumberAxis("Grauwert", 0, 255, 10);
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Anzahl der Grauwerte");
+        this.chartGrayValues = new LineChart<>(xAxis, yAxis);
     }
 
     private void setupInteractions() {
