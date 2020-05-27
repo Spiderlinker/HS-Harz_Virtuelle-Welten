@@ -52,7 +52,7 @@ public class ImageInfoView {
 
         this.fldInformation = new TextArea("Bildinformationen...");
         this.fldInformation.setPrefHeight(300);
-        this.fldInformation.setEditable(true);
+        this.fldInformation.setEditable(false);
         this.fldInformation.setWrapText(true);
 
         NumberAxis xAxis = new NumberAxis("Grauwert", 0, 255, 10);
