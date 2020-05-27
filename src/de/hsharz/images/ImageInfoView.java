@@ -119,7 +119,7 @@ public class ImageInfoView {
     // Chart updaten mit neuen Bildinformationen
     private void updateChartInformation(final ImageInfo info) {
         Series<Number, Number> series1 = new XYChart.Series<>();
-        series1.setName("Bild");
+        series1.setName("Bild"); // etwas einfallslos.. aber naja
 
         for (int i = 0; i < info.getGrayValueCount().length; i++) {
             int count = info.getGrayValueCount()[i];
