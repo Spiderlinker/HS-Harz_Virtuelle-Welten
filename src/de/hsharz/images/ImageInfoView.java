@@ -19,6 +19,17 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
+/**
+ * Diese Klasse ist die UI-Klasse. Diese stellt ein
+ * User-Interface dem Benutzer dar, Ã¼ber das er ein
+ * neues Bild laden kann. Dieses Bild wird analysiert
+ * und verschiedenste Informationen Ã¼ber Grauwerte
+ * dem Benutzer angezeigt.
+ *
+ * @author Oliver Lindemann
+ * u33873@hs-harz.de
+ * Matr.Nr.: 26264
+ */
 public class ImageInfoView {
 
     // VBox beinhaltet alle Komponenten untereinander
@@ -66,13 +77,13 @@ public class ImageInfoView {
         this.btnLoadImage.setOnAction(e -> {
 
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Bild auswählen");
-            fileChooser.getExtensionFilters().addAll( // Eigene ExtensionFilters hinzufügen
+            fileChooser.setTitle("Bild auswï¿½hlen");
+            fileChooser.getExtensionFilters().addAll( // Eigene ExtensionFilters hinzufï¿½gen
                     new ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"), // Bildateien
                     new ExtensionFilter("All Files", "*.*") // Alle Dateien
             );
             File selectedFile = fileChooser.showOpenDialog(null);
-            // Nur Bild laden, falls auch eins ausgewählt wurde
+            // Nur Bild laden, falls auch eins ausgewï¿½hlt wurde
             if (selectedFile != null) {
                 // Bildinformationen aktualisieren
                 this.updateImageInformation(selectedFile);

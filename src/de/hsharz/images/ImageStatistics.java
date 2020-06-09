@@ -4,6 +4,16 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * Diese Klasse ist zum Starten des Programmes verantwortlich.
+ * Sie erzeugt ein neues UserInterface und stellt dieses auf
+ * dem Bildschirm dar.
+ *
+ * @author Oliver Lindemann
+ * u33873@hs-harz.de
+ * Matr.Nr.: 26264
+ */
+
 public class ImageStatistics extends Application {
 
     public static void main(final String[] args) {
