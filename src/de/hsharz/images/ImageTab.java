@@ -2,12 +2,13 @@ package de.hsharz.images;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.function.Function;
+
+import javax.imageio.ImageIO;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -16,7 +17,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -28,11 +28,11 @@ public class ImageTab extends Tab {
 
 	// Deque ('Deck') ist unsynchronized und optimiert für performance
 	// und ist das nicht-thread-safe Äquivalent zu Stack
-	private Deque<Image> previousImages = new LinkedList<>();
-	private Deque<Image> nextImages = new LinkedList<>();
+	private Deque<BufferedImage> previousImages = new ArrayDeque<>();
+	private Deque<BufferedImage> nextImages = new ArrayDeque<>();
 
-	private Image originalImage;
-	private ObjectProperty<Image> currentImageProperty = new SimpleObjectProperty<>();
+	private BufferedImage originalImage;
+	private ObjectProperty<BufferedImage> currentImageProperty = new SimpleObjectProperty<>();
 
 	private BorderPane root;
 	private HBox boxMenu;
@@ -45,19 +45,21 @@ public class ImageTab extends Tab {
 	private ImageView viewOriginalImage;
 	private ImageView viewCurrentImage;
 
-	public ImageTab(File selectedFile) throws FileNotFoundException {
+	public ImageTab(File selectedFile) throws IOException {
 		this.selectedFile = Objects.requireNonNull(selectedFile);
-
-		loadImages();
 
 		createWidgets();
 		setupInteractions();
 		addWidgets();
+
+		loadAndUpdateImages();
 	}
 
-	private void loadImages() throws FileNotFoundException {
-		originalImage = new Image(new FileInputStream(selectedFile));
-		currentImageProperty.set(new Image(new FileInputStream(selectedFile)));
+	private void loadAndUpdateImages() throws IOException {
+		originalImage = ImageIO.read(selectedFile);
+		currentImageProperty.set(originalImage);
+
+		viewOriginalImage.setImage(SwingFXUtils.toFXImage(originalImage, null));
 	}
 
 	private void createWidgets() {
@@ -71,11 +73,12 @@ public class ImageTab extends Tab {
 		btnRedo = new Button("Redo");
 		btnShowOriginalImage = new ToggleButton("Show Original Image");
 
-		viewOriginalImage = new ImageView(originalImage);
+		viewOriginalImage = new ImageView();
 		viewOriginalImage.visibleProperty().bind(btnShowOriginalImage.selectedProperty());
 
 		viewCurrentImage = new ImageView();
-		viewCurrentImage.imageProperty().bind(currentImageProperty);
+		currentImageProperty.addListener((observable, oldValue, newValue) -> viewCurrentImage
+				.setImage(SwingFXUtils.toFXImage(newValue, null)));
 	}
 
 	private void setupInteractions() {
@@ -88,7 +91,6 @@ public class ImageTab extends Tab {
 		root.setCenter(new ScrollPane(paneImage));
 
 		boxMenu.getChildren().addAll(btnUndo, btnRedo, btnShowOriginalImage);
-
 		paneImage.getChildren().addAll(viewCurrentImage, viewOriginalImage);
 
 		setContent(root);
@@ -99,7 +101,7 @@ public class ImageTab extends Tab {
 			return;
 		}
 
-		nextImages.add(currentImageProperty.get());
+		nextImages.push(currentImageProperty.get());
 		currentImageProperty.set(previousImages.pop());
 	}
 
@@ -108,14 +110,23 @@ public class ImageTab extends Tab {
 			return;
 		}
 
-		previousImages.add(currentImageProperty.get());
+		previousImages.push(currentImageProperty.get());
 		currentImageProperty.set(nextImages.pop());
+
 	}
 
-	public void performOperation(Function<File, Image> imageFileOperation) {
-		Image newImage = imageFileOperation.apply(selectedFile);
+	public void performImageOperation(Function<BufferedImage, BufferedImage> imageOperation) {
+		BufferedImage newImage = imageOperation.apply(currentImageProperty.get());
 		if (newImage != null) {
-			previousImages.add(currentImageProperty.get());
+			previousImages.push(currentImageProperty.get());
+			currentImageProperty.set(newImage);
+		}
+	}
+
+	public void performFileOperation(Function<File, BufferedImage> imageFileOperation) {
+		BufferedImage newImage = imageFileOperation.apply(selectedFile);
+		if (newImage != null) {
+			previousImages.push(currentImageProperty.get());
 			currentImageProperty.set(newImage);
 		}
 	}
@@ -125,7 +136,7 @@ public class ImageTab extends Tab {
 	}
 
 	public BufferedImage getCurrentImage() {
-		return SwingFXUtils.fromFXImage(currentImageProperty.get(), null);
+		return currentImageProperty.get();
 	}
 
 }

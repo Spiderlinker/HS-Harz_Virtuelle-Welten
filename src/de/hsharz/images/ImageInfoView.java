@@ -7,10 +7,14 @@ import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
+import de.hsharz.images.ImageInfo.ImageColor;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -30,8 +34,17 @@ public class ImageInfoView {
 	// Anzeige von Informationen des geladenen Bildes
 	private TextArea fldInformation;
 
+	private TabPane tabCharts;
+	private Tab tabGray;
+	private Tab tabRed;
+	private Tab tabGreen;
+	private Tab tabBlue;
+
 	// Chart beinhaltet Anzahl der einzelnen Grauwerte
 	private LineChart<Number, Number> chartGrayValues;
+	private LineChart<Number, Number> chartRedValues;
+	private LineChart<Number, Number> chartGreenValues;
+	private LineChart<Number, Number> chartBlueValues;
 
 	private File imageFile;
 	private BufferedImage loadedImage;
@@ -57,15 +70,35 @@ public class ImageInfoView {
 	private void createWidgets() {
 		this.root = new VBox(10);
 
+		tabGray = new Tab("Grauwerte");
+		tabRed = new Tab("Rotwerte");
+		tabGreen = new Tab("Grünwerte");
+		tabBlue = new Tab("Blauwerte");
+		tabCharts = new TabPane(tabGray, tabRed, tabGreen, tabBlue);
+
 		this.fldInformation = new TextArea("Bildinformationen...");
 		this.fldInformation.setPrefHeight(300);
 		this.fldInformation.setEditable(false);
 		this.fldInformation.setWrapText(true);
 
-		NumberAxis xAxis = new NumberAxis("Grauwert", 0, 255, 10);
+		chartGrayValues = createChart("Grauwerte");
+		chartRedValues = createChart("Rotwerte");
+		chartGreenValues = createChart("Grünwerte");
+		chartBlueValues = createChart("Blauwerte");
+
+		tabGray.setContent(chartGrayValues);
+		tabRed.setContent(chartRedValues);
+		tabGreen.setContent(chartGreenValues);
+		tabBlue.setContent(chartBlueValues);
+	}
+
+	private LineChart<Number, Number> createChart(String title) {
+		NumberAxis xAxis = new NumberAxis("Grauwerte", 0, 255, 10);
 		NumberAxis yAxis = new NumberAxis();
 		yAxis.setLabel("Anzahl der Grauwerte");
-		this.chartGrayValues = new LineChart<>(xAxis, yAxis);
+		LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
+		chart.setCreateSymbols(false);
+		return chart;
 	}
 
 	/*
@@ -104,19 +137,34 @@ public class ImageInfoView {
 
 	// Chart updaten mit neuen Bildinformationen
 	private void updateChartInformation(final ImageInfo info) {
-		Series<Number, Number> series1 = new XYChart.Series<>();
-		series1.setName(imageFile.getName());
 
-		for (int i = 0; i < info.getGrayValueCount().length; i++) {
-			int count = info.getGrayValueCount()[i];
-			series1.getData().add(new XYChart.Data<>(i, count));
-		}
 		this.chartGrayValues.getData().clear();
-		this.chartGrayValues.getData().add(series1);
+		this.chartGrayValues.getData().add(createSeries(ImageColor.GRAY, info));
+
+		this.chartRedValues.getData().clear();
+		this.chartRedValues.getData().add(createSeries(ImageColor.RED, info));
+
+		this.chartGreenValues.getData().clear();
+		this.chartGreenValues.getData().add(createSeries(ImageColor.GREEN, info));
+
+		this.chartBlueValues.getData().clear();
+		this.chartBlueValues.getData().add(createSeries(ImageColor.BLUE, info));
+	}
+
+	private Series<Number, Number> createSeries(ImageColor color, final ImageInfo info) {
+		Series<Number, Number> series = new XYChart.Series<>();
+		series.setName(color.toString());
+		for (int i = 0; i < info.getColorValueCount(color).length; i++) {
+			int count = info.getColorValueCount(color)[i];
+			series.getData().add(new XYChart.Data<>(i, 0));
+			series.getData().add(new XYChart.Data<>(i, count));
+			series.getData().add(new XYChart.Data<>(i, 0));
+		}
+		return series;
 	}
 
 	private void addWidgets() {
-		this.root.getChildren().addAll(this.fldInformation, this.chartGrayValues);
+		this.root.getChildren().addAll(this.fldInformation, this.tabCharts);
 	}
 
 	public Pane getPane() {

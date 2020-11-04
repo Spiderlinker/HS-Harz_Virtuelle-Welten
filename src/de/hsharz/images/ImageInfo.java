@@ -3,6 +3,9 @@ package de.hsharz.images;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -53,9 +56,8 @@ public class ImageInfo {
 	private double standardabweichung = NOT_CALCULATED;
 	/** Entropie der Grauwerte */
 	private double entropy = NOT_CALCULATED;
-	// Beinhaltet die Anzahl der einzelnen Grauwerte
-	// index = Grauwert, Value = Count
-	private int[] grayValueCount = null;
+
+	private Map<ImageColor, Integer[]> colorValueCounts = new EnumMap<>(ImageColor.class);
 
 	/**
 	 * Ergeugt eine neue Instanz von ImageInfo mit dem gegebenen Bild. Das gegebene
@@ -214,7 +216,7 @@ public class ImageInfo {
 			// Entropie ermittelt sich aus:
 			// - Summe von(p * log2(p))
 			double entropy = 0.0;
-			for (int value : this.getGrayValueCount()) {
+			for (int value : this.getColorValueCount(ImageColor.GRAY)) {
 				// Pr�fen, ob es diesen Grauwert �berhaupt gib, sonst ignoriere diesen Grauwert
 				// Wenn Anzahl des Grauwertes > 0, dann berechne damit die Entropie
 				if (value > 0) {
@@ -239,24 +241,39 @@ public class ImageInfo {
 	 *
 	 * @return Anzahl der Grauwerte im Bild
 	 */
-	public int[] getGrayValueCount() {
-		if (this.grayValueCount == null) {
+	public Integer[] getColorValueCount(ImageColor c) {
+		if (colorValueCounts.get(c) == null) {
 			// Array bildet alle Grauwerte und ihre H�ufigkeit ab
 			// Der Index ist der Grauwert und die darin enthaltende
 			// Zahl ist die Anzahl des Grauwertes
-			int[] grayCount = new int[MAX_GRAY_VALUE + 1];
+			int[] colorCount = new int[MAX_GRAY_VALUE + 1];
 			for (int x = 0; x < this.image.getWidth(); x++) {
 				for (int y = 0; y < this.image.getHeight(); y++) {
 					// Grauwert des Pixels bei x, y ermitteln
-					int grayValue = this.getGrayOfPixel(x, y);
+					int colorValue = 0;
+					switch (c) {
+					case GRAY:
+						colorValue = getGrayOfPixel(image.getRGB(x, y));
+						break;
+					case RED:
+						colorValue = getRedOfPixel(image.getRGB(x, y));
+						break;
+					case GREEN:
+						colorValue = getGreenOfPixel(image.getRGB(x, y));
+						break;
+					case BLUE:
+						colorValue = getBlueOfPixel(image.getRGB(x, y));
+						break;
+					}
+
 					// Anzahl des Grauwertes inkrementieren
-					grayCount[grayValue]++;
+					colorCount[colorValue]++;
 				}
 			}
 			// Berechnete Anzahl von Grauwerten speichern
-			this.grayValueCount = grayCount;
+			this.colorValueCounts.put(c, Arrays.stream(colorCount).boxed().toArray(Integer[]::new));
 		}
-		return this.grayValueCount;
+		return this.colorValueCounts.get(c);
 	}
 
 	/**
@@ -288,13 +305,25 @@ public class ImageInfo {
 		// und dann mit Maske 0xFF (nur die letzten 8 Bit �bernehmen)
 		// UND-Verkn�pft, damit bleiben nur die Rotwerte �brig
 
-		int r = (rgb >> 16) & 0xFF; // Rot extrahieren
-		int g = (rgb >> 8) & 0xFF; // Gr�n extrahieren
-		int b = rgb & 0xFF; // Blau extrahieren
+		int r = getRedOfPixel(rgb); // Rot extrahieren
+		int g = getGreenOfPixel(rgb); // Gr�n extrahieren
+		int b = getBlueOfPixel(rgb); // Blau extrahieren
 
 		// Grauwert berechnen
 		// Rot + Gr�n + Blau / Anzahl an Werten (3)
 		return (r + g + b) / 3;
+	}
+
+	private int getRedOfPixel(int rgb) {
+		return (rgb >> 16) & 0xFF;
+	}
+
+	private int getGreenOfPixel(int rgb) {
+		return (rgb >> 8) & 0xFF;
+	}
+
+	private int getBlueOfPixel(int rgb) {
+		return rgb & 0xFF;
 	}
 
 	public BufferedImage getAsGrayImage() {
@@ -331,6 +360,10 @@ public class ImageInfo {
 	public static double log2(final double value) {
 		// loga b = ln b / ln a
 		return Math.log(value) / Math.log(2);
+	}
+
+	public enum ImageColor {
+		GRAY, RED, GREEN, BLUE;
 	}
 
 }

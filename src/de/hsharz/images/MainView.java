@@ -1,17 +1,14 @@
 package de.hsharz.images;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
-
-import javafx.embed.swing.SwingFXUtils;
+import de.hsharz.images.filter.BinaryFilter;
+import de.hsharz.images.filter.BinaryFilterPane;
+import de.hsharz.images.utils.PopupWindow;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
@@ -37,6 +34,7 @@ public class MainView {
 	private MenuItem itemMedian;
 	private MenuItem itemRectangle;
 	private MenuItem itemGrayImage;
+	private MenuItem itemBinaryImage;
 
 	public MainView() {
 		createWidgets();
@@ -62,7 +60,8 @@ public class MainView {
 		menuLowPass = new Menu("Tiefpassfilter");
 		menuHighPass = new Menu("Hochpassfilter");
 		itemGrayImage = new MenuItem("Schwarz/Weiß");
-		menuFilter.getItems().addAll(menuLowPass, menuHighPass, itemGrayImage);
+		itemBinaryImage = new MenuItem("Binärbild");
+		menuFilter.getItems().addAll(menuLowPass, menuHighPass, itemGrayImage, itemBinaryImage);
 
 		itemGauss = new MenuItem("Gauss");
 		itemMedian = new MenuItem("Median");
@@ -87,7 +86,7 @@ public class MainView {
 			if (selectedFile != null) {
 				try {
 					createNewImageInfoView(selectedFile);
-				} catch (FileNotFoundException e1) {
+				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -102,7 +101,7 @@ public class MainView {
 			try {
 				ImageInfoView imageInfo = new ImageInfoView(imageTab.getSelectedFile(),
 						imageTab.getCurrentImage());
-				new PopupWindow("Bildstatistik / Histogramm", new ScrollPane(imageInfo.getPane()));
+				new PopupWindow("Bildstatistik / Histogramm", imageInfo.getPane()).show();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -114,16 +113,28 @@ public class MainView {
 				return;
 			}
 
-			imageTab.performOperation(f -> {
-				try {
-					ImageInfo info = new ImageInfo(ImageIO.read(imageTab.getSelectedFile()));
-					BufferedImage bufferedGrayImage = info.getAsGrayImage();
-					return SwingFXUtils.toFXImage(bufferedGrayImage, null);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				return null;
+			imageTab.performFileOperation(f -> {
+				ImageInfo info = new ImageInfo(imageTab.getCurrentImage());
+				return info.getAsGrayImage();
 			});
+
+		});
+
+		itemBinaryImage.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			BinaryFilterPane binaryFilterPane = new BinaryFilterPane(imageTab.getCurrentImage());
+			PopupWindow popup = new PopupWindow("Binärbild erstellen", binaryFilterPane.getPane());
+			binaryFilterPane.getButtonChoose().setOnAction(e2 -> {
+				popup.close();
+				int selectedValue = binaryFilterPane.getSelectedValue();
+				imageTab.performImageOperation(
+						image -> new BinaryFilter(selectedValue).perform(image));
+			});
+			popup.showAndWait();
 
 		});
 	}
@@ -136,7 +147,7 @@ public class MainView {
 		return null;
 	}
 
-	private void createNewImageInfoView(File imageFile) throws FileNotFoundException {
+	private void createNewImageInfoView(File imageFile) throws IOException {
 		ImageTab tab = new ImageTab(imageFile);
 //		ImageInfoView view = new ImageInfoView(imageFile);
 //		tab.setContent(view.getPane());
