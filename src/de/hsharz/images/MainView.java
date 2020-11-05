@@ -161,11 +161,9 @@ public class MainView {
 			binaryFilterPane.getButtonChoose().setOnAction(e2 -> {
 				popup.close();
 				int selectedValue = binaryFilterPane.getSelectedValue();
-				imageTab.performImageOperation(
-						image -> new BinaryFilter(selectedValue).perform(image));
+				imageTab.performImageOperation(new BinaryFilter(selectedValue));
 			});
 			popup.showAndWait();
-
 		});
 	}
 
