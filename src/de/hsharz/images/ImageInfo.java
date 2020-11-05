@@ -5,6 +5,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -26,9 +27,9 @@ import java.util.Objects;
 public class ImageInfo {
 
 	/** Minimaler Grauwert */
-	public static final int MIN_GRAY_VALUE = 0;
+	public static final int MIN_COLOR_VALUE = 0;
 	/** Maximaler Grauwert */
-	public static final int MAX_GRAY_VALUE = 255;
+	public static final int MAX_COLOR_VALUE = 255;
 
 	/** Wert, falls ein Wert noch nicht berechnet worden ist */
 	public static final int NOT_CALCULATED = -1;
@@ -42,20 +43,16 @@ public class ImageInfo {
 
 	// ----- Grauwert-Informationen -----
 
-	/** Minimaler Grauwert des gegebenen Bildes */
-	private int minGrayValue = NOT_CALCULATED;
-	/** Maximaler Grauwert des gegebenen Bildes */
-	private int maxGrayValue = NOT_CALCULATED;
-	/** Mittlerer Grauwert des gegebenen Bildes */
-	private int midGrayValue = NOT_CALCULATED;
-
-	// Verschiedene Informationen �ber die Verteilung der Grauwerte
-	/** Varianz der Grauwerte */
-	private double varianz = NOT_CALCULATED;
-	/** Standardabweichung der Grauwerte */
-	private double standardabweichung = NOT_CALCULATED;
-	/** Entropie der Grauwerte */
-	private double entropy = NOT_CALCULATED;
+	/*
+	 * ImageColor.value.min BLUE.value.min = 12; ...
+	 */
+	private Map<String, Double> calculatedValues = new HashMap<>();
+	private static final String MIN_VALUE = ".value.min";
+	private static final String MAX_VALUE = ".value.max";
+	private static final String MID_VALUE = ".value.mid";
+	private static final String VARIANZ = ".varianz";
+	private static final String STANDARD_DEVIATION = ".standard_deviation";
+	private static final String ENTROPY = ".entropy";
 
 	private Map<ImageColor, Integer[]> colorValueCounts = new EnumMap<>(ImageColor.class);
 
@@ -90,42 +87,44 @@ public class ImageInfo {
 	 *
 	 * @return Liefert den mittleren Grauwert des Bildes
 	 */
-	public int getMidGrayValue() {
+	public double getMidValue(ImageColor color) {
+		String key = color.toString() + MID_VALUE;
 		// Mittleren Grauwert nur 1x berechnen
-		if (this.midGrayValue == NOT_CALCULATED) {
-			int sum = 0; // Summe aller Grauwerte
+		if (this.calculatedValues.get(key) == null) {
+			double sum = 0; // Summe aller Grauwerte
 
 			// Berechnung der Summe aller Grauwerte
 			for (int x = 0; x < this.image.getWidth(); x++) {
 				for (int y = 0; y < this.image.getHeight(); y++) {
 					// Grauwert von Pixel an der Stelle (x,y) holen
 					// und zur Summe addieren
-					sum += this.getGrayOfPixel(x, y);
+					sum += this.getColorValueOfPixel(color, x, y);
 				}
 			}
 			// Mittleren Grauwert bestimmen mit (Summe / Anzahl Pixel)
 			// Mittleren Grauwert abspeichern
-			this.midGrayValue = sum / this.getPixelCount();
+			this.calculatedValues.put(key, sum / this.getPixelCount());
 		}
 		// zuvor berechneten mittleren Grauwert liefern
-		return this.midGrayValue;
+		return this.calculatedValues.get(key);
 	}
 
 	/**
-	 * Liefert den Minimalen Grauwert des Bildes (min. {@value #MIN_GRAY_VALUE},
-	 * max. {@value #MAX_GRAY_VALUE})
+	 * Liefert den Minimalen Grauwert des Bildes (min. {@value #MIN_COLOR_VALUE},
+	 * max. {@value #MAX_COLOR_VALUE})
 	 *
 	 * @return minimaler Grauwert des Bildes
 	 */
-	public int getMinGrayValue() {
-		if (this.minGrayValue == NOT_CALCULATED) {
+	public double getMinValue(ImageColor color) {
+		String key = color.toString() + MIN_VALUE;
+		if (this.calculatedValues.get(key) == null) {
 			// Minimalen Grauwert initial auf den maximalen Grauwert setzen,
 			// damit ein (kleinerer) minimaler Grauwert gefunden werden kann
-			int min = MAX_GRAY_VALUE;
+			double min = MAX_COLOR_VALUE;
 			for (int x = 0; x < this.image.getWidth(); x++) {
 				for (int y = 0; y < this.image.getHeight(); y++) {
 					// Grauwert des Pixels an der Position x,y holen
-					int grayValue = this.getGrayOfPixel(x, y);
+					int grayValue = this.getColorValueOfPixel(color, x, y);
 					// Pr�fen, ob aktueller Grauwert des Pixels kleiner ist,
 					// als der aktuell gefundene minimale Grauwert
 					if (grayValue < min) {
@@ -133,27 +132,28 @@ public class ImageInfo {
 					}
 				}
 			}
-			this.minGrayValue = min;
+			this.calculatedValues.put(key, min);
 		}
-		return this.minGrayValue;
+		return this.calculatedValues.get(key);
 	}
 
 	/**
-	 * Liefert den Maximalen Grauwert des Bildes (min. {@value #MIN_GRAY_VALUE},
-	 * max. {@value #MAX_GRAY_VALUE})
+	 * Liefert den Maximalen Grauwert des Bildes (min. {@value #MIN_COLOR_VALUE},
+	 * max. {@value #MAX_COLOR_VALUE})
 	 *
 	 * @return maximaler Grauwert des Bildes
 	 */
-	public int getMaxGrayValue() {
+	public double getMaxValue(ImageColor color) {
+		String key = color.toString() + MAX_VALUE;
 		// Maximalen Grauwert nur 1x berechnen
-		if (this.maxGrayValue == NOT_CALCULATED) {
+		if (this.calculatedValues.get(key) == null) {
 			// Maximalen Grauwert initial auf den minimalen Grauwert setzen,
 			// damit ein (h�herer) maximaler Grauwert gefunden werden kann
-			int max = MIN_GRAY_VALUE;
+			double max = MIN_COLOR_VALUE;
 			for (int x = 0; x < this.image.getWidth(); x++) {
 				for (int y = 0; y < this.image.getHeight(); y++) {
 					// Grauwert des Pixels an der Position x,y holen
-					int grayValue = this.getGrayOfPixel(x, y);
+					int grayValue = this.getColorValueOfPixel(color, x, y);
 					// Pr�fen, ob aktueller Grauwert des Pixels gr��er ist,
 					// als der aktuell gefundene maximale Grauwert
 					if (grayValue > max) {
@@ -162,10 +162,10 @@ public class ImageInfo {
 				}
 			}
 			// Gefundenen Grauwert abspeichern
-			this.maxGrayValue = max;
+			this.calculatedValues.put(key, max);
 		}
 		// zuvor berechneten maximalen Grauwert zur�ckgeben
-		return this.maxGrayValue;
+		return this.calculatedValues.get(key);
 	}
 
 	/**
@@ -173,23 +173,24 @@ public class ImageInfo {
 	 *
 	 * @return Varianz der Grauwerte des Bildes
 	 */
-	public double getVarianz() {
+	public double getVarianz(ImageColor color) {
+		String key = color.toString() + VARIANZ;
 		// Varianz nur 1x berechnen
-		if (this.varianz == NOT_CALCULATED) {
-			int mid = this.getMidGrayValue();
+		if (this.calculatedValues.get(key) == null) {
+			double mid = this.getMidValue(color);
 			long sum = 0;
 			for (int x = 0; x < this.image.getWidth(); x++) {
 				for (int y = 0; y < this.image.getHeight(); y++) {
 					// Formel f�r Berechnung der Varianz anwenden
 					// (Einzelner Grauwert - Mittlerer Grauwert)^2
-					sum += Math.pow(this.getGrayOfPixel(x, y) - mid, 2);
+					sum += Math.pow(this.getColorValueOfPixel(color, x, y) - mid, 2);
 				}
 			}
 			// Varianz berechnen und in Instanzvariable abspeichern
 			// Summe durch Anzahl der Pixel - 1
-			this.varianz = (double) sum / (this.getPixelCount() - 1);
+			this.calculatedValues.put(key, (double) sum / (this.getPixelCount() - 1));
 		}
-		return this.varianz;
+		return this.calculatedValues.get(key);
 	}
 
 	/**
@@ -197,12 +198,13 @@ public class ImageInfo {
 	 *
 	 * @return Standardabweichung der Grauwerte des Bildes
 	 */
-	public double getStandardabweichung() {
-		if (this.standardabweichung == NOT_CALCULATED) {
+	public double getStandardabweichung(ImageColor color) {
+		String key = color.toString() + STANDARD_DEVIATION;
+		if (this.calculatedValues.get(key) == null) {
 			// Standardabweichung ist die Wurzel aus der Varianz
-			this.standardabweichung = Math.sqrt(this.getVarianz());
+			this.calculatedValues.put(key, Math.sqrt(this.getVarianz(color)));
 		}
-		return this.standardabweichung;
+		return this.calculatedValues.get(key);
 	}
 
 	/**
@@ -210,9 +212,10 @@ public class ImageInfo {
 	 *
 	 * @return Entropie dieses Bildes
 	 */
-	public double getEntropy() {
+	public double getEntropy(ImageColor color) {
+		String key = color.toString() + ENTROPY;
 		// Entropie nur 1x berechnen
-		if (this.entropy == NOT_CALCULATED) {
+		if (this.calculatedValues.get(key) == null) {
 			// Entropie ermittelt sich aus:
 			// - Summe von(p * log2(p))
 			double entropy = 0.0;
@@ -228,9 +231,9 @@ public class ImageInfo {
 				}
 			}
 			// Berechnete Entropie abspeichern
-			this.entropy = entropy;
+			this.calculatedValues.put(key, entropy);
 		}
-		return this.entropy;
+		return this.calculatedValues.get(key);
 	}
 
 	/**
@@ -246,25 +249,11 @@ public class ImageInfo {
 			// Array bildet alle Grauwerte und ihre H�ufigkeit ab
 			// Der Index ist der Grauwert und die darin enthaltende
 			// Zahl ist die Anzahl des Grauwertes
-			int[] colorCount = new int[MAX_GRAY_VALUE + 1];
+			int[] colorCount = new int[MAX_COLOR_VALUE + 1];
 			for (int x = 0; x < this.image.getWidth(); x++) {
 				for (int y = 0; y < this.image.getHeight(); y++) {
 					// Grauwert des Pixels bei x, y ermitteln
-					int colorValue = 0;
-					switch (c) {
-					case GRAY:
-						colorValue = getGrayOfPixel(image.getRGB(x, y));
-						break;
-					case RED:
-						colorValue = getRedOfPixel(image.getRGB(x, y));
-						break;
-					case GREEN:
-						colorValue = getGreenOfPixel(image.getRGB(x, y));
-						break;
-					case BLUE:
-						colorValue = getBlueOfPixel(image.getRGB(x, y));
-						break;
-					}
+					int colorValue = getColorValueOfPixel(c, x, y);
 
 					// Anzahl des Grauwertes inkrementieren
 					colorCount[colorValue]++;
@@ -283,8 +272,19 @@ public class ImageInfo {
 	 * @param y y-Koordinate des Pixels
 	 * @return Grauwert des angegebenen Pixels
 	 */
-	private int getGrayOfPixel(final int x, final int y) {
-		return this.getGrayOfPixel(this.image.getRGB(x, y));
+	private int getColorValueOfPixel(ImageColor color, int x, int y) {
+		int rgb = this.image.getRGB(x, y);
+		switch (color) {
+		case GRAY:
+			return getGrayOfPixel(rgb);
+		case RED:
+			return getRedOfPixel(rgb);
+		case GREEN:
+			return getGreenOfPixel(rgb);
+		case BLUE:
+			return getBlueOfPixel(rgb);
+		}
+		return NOT_CALCULATED;
 	}
 
 	/**

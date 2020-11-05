@@ -1,7 +1,10 @@
 package de.hsharz.images;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import de.hsharz.images.filter.BinaryFilter;
 import de.hsharz.images.filter.BinaryFilterPane;
@@ -29,6 +32,7 @@ public class MainView {
 	private Menu menuHighPass;
 
 	private MenuItem itemLoadFile;
+	private MenuItem itemSaveFileAs;
 	private MenuItem itemShowStatistics;
 	private MenuItem itemGauss;
 	private MenuItem itemMedian;
@@ -49,8 +53,9 @@ public class MainView {
 		menuBar = new MenuBar();
 		menuFile = new Menu("Datei");
 		itemLoadFile = new MenuItem("Neues Bild laden...");
+		itemSaveFileAs = new MenuItem("Bild speichern unter...");
 
-		menuFile.getItems().add(itemLoadFile);
+		menuFile.getItems().addAll(itemLoadFile, itemSaveFileAs);
 
 		menuStatistics = new Menu("Statistik");
 		itemShowStatistics = new MenuItem("Statistik einblenden");
@@ -92,6 +97,34 @@ public class MainView {
 			}
 		});
 
+		itemSaveFileAs.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			FileChooser fileChooser = new FileChooser();
+			fileChooser.setTitle("Datei auswählen");
+			fileChooser.getExtensionFilters().addAll( // Eigene ExtensionFilters hinzufügen
+					new ExtensionFilter("JPG", "*.jpg", "*.jpeg"), // Bildateien
+					new ExtensionFilter("PNG", "*.png"), // Bildateien
+					new ExtensionFilter("BMP", "*.bmp"), // Bildateien
+					new ExtensionFilter("All Files", "*.*") // Alle Dateien
+			);
+			File selectedFile = fileChooser.showSaveDialog(null);
+			// Nur Bild speichern, falls auch eine Datei ausgewählt wurde
+			System.out.println(selectedFile);
+			if (selectedFile != null) {
+				try {
+					String selectedExtension = fileChooser.getSelectedExtensionFilter()
+							.getExtensions().get(0);
+					saveImageToFile(imageTab.getCurrentImage(), selectedExtension, selectedFile);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
 		itemShowStatistics.setOnAction(e -> {
 			ImageTab imageTab = getSelectedTab();
 			if (imageTab == null) {
@@ -113,10 +146,7 @@ public class MainView {
 				return;
 			}
 
-			imageTab.performFileOperation(f -> {
-				ImageInfo info = new ImageInfo(imageTab.getCurrentImage());
-				return info.getAsGrayImage();
-			});
+			imageTab.performImageOperation(image -> new ImageInfo(image).getAsGrayImage());
 
 		});
 
@@ -149,10 +179,14 @@ public class MainView {
 
 	private void createNewImageInfoView(File imageFile) throws IOException {
 		ImageTab tab = new ImageTab(imageFile);
-//		ImageInfoView view = new ImageInfoView(imageFile);
-//		tab.setContent(view.getPane());
 		tabPane.getTabs().add(tab);
 		tabPane.getSelectionModel().selectLast();
+	}
+
+	private void saveImageToFile(BufferedImage image, String extension, File saveTo)
+			throws IOException {
+		System.out.println("Saving to file: " + saveTo + " with extension: " + extension);
+		ImageIO.write(image, extension.replace("*.", ""), saveTo);
 	}
 
 	private void addWidgets() {

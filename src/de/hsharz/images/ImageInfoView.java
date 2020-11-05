@@ -7,16 +7,24 @@ import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
+import org.gillius.jfxutils.chart.ChartPanManager;
+import org.gillius.jfxutils.chart.JFXChartUtil;
+import org.gillius.jfxutils.chart.StableTicksAxis;
+
 import de.hsharz.images.ImageInfo.ImageColor;
-import javafx.scene.Node;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
@@ -29,25 +37,32 @@ import javafx.scene.layout.VBox;
 public class ImageInfoView {
 
 	// VBox beinhaltet alle Komponenten untereinander
-	private VBox root;
+	private BorderPane root;
+	private Region chartPane;
 
-	// Anzeige von Informationen des geladenen Bildes
-	private TextArea fldInformation;
+	private VBox boxButtons;
+	private RadioButton btnGray;
+	private RadioButton btnRed;
+	private RadioButton btnGreen;
+	private RadioButton btnBlue;
 
-	private TabPane tabCharts;
-	private Tab tabGray;
-	private Tab tabRed;
-	private Tab tabGreen;
-	private Tab tabBlue;
+	private GridPane gridInfos;
+	private Label lblPath;
+	private Label lblPixelAmount;
+	private Label lblMidValue;
+	private Label lblMaxValue;
+	private Label lblMinValue;
+	private Label lblVarianz;
+	private Label lblStandardDeviation;
+	private Label lblEntropy;
 
 	// Chart beinhaltet Anzahl der einzelnen Grauwerte
-	private LineChart<Number, Number> chartGrayValues;
-	private LineChart<Number, Number> chartRedValues;
-	private LineChart<Number, Number> chartGreenValues;
-	private LineChart<Number, Number> chartBlueValues;
+	private LineChart<Number, Number> chart;
 
 	private File imageFile;
 	private BufferedImage loadedImage;
+
+	private ImageInfo info;
 
 	public ImageInfoView(File imageFile) throws IOException {
 		this(imageFile, null);
@@ -61,94 +76,98 @@ public class ImageInfoView {
 			loadedImage = image;
 		}
 
+		info = new ImageInfo(loadedImage);
+
 		this.createWidgets();
+		this.setupInteractions();
 		this.addWidgets();
 
-		updateImageInformation();
+		this.updateChartInformation(info);
+		this.btnGray.fire();
 	}
 
 	private void createWidgets() {
-		this.root = new VBox(10);
+		this.root = new BorderPane();
+		this.root.setPadding(new Insets(20));
 
-		tabGray = new Tab("Grauwerte");
-		tabRed = new Tab("Rotwerte");
-		tabGreen = new Tab("Grünwerte");
-		tabBlue = new Tab("Blauwerte");
-		tabCharts = new TabPane(tabGray, tabRed, tabGreen, tabBlue);
-
-		this.fldInformation = new TextArea("Bildinformationen...");
-		this.fldInformation.setPrefHeight(300);
-		this.fldInformation.setEditable(false);
-		this.fldInformation.setWrapText(true);
-
-		chartGrayValues = createChart("Grauwerte");
-		chartRedValues = createChart("Rotwerte");
-		chartGreenValues = createChart("Grünwerte");
-		chartBlueValues = createChart("Blauwerte");
-
-		tabGray.setContent(chartGrayValues);
-		tabRed.setContent(chartRedValues);
-		tabGreen.setContent(chartGreenValues);
-		tabBlue.setContent(chartBlueValues);
-	}
-
-	private LineChart<Number, Number> createChart(String title) {
-		NumberAxis xAxis = new NumberAxis("Grauwerte", 0, 255, 10);
-		NumberAxis yAxis = new NumberAxis();
-		yAxis.setLabel("Anzahl der Grauwerte");
-		LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
+		StableTicksAxis xAxis = new StableTicksAxis(-5, 255);
+		StableTicksAxis yAxis = new StableTicksAxis();
+		yAxis.setLabel("Anzahl der " + "Anzahl der Farbwerte");
+		chart = new LineChart<>(xAxis, yAxis);
 		chart.setCreateSymbols(false);
-		return chart;
+		chart.setLegendVisible(false);
+
+		setupChartInteractions();
+
+		boxButtons = new VBox(20);
+		boxButtons.setMaxWidth(Double.MAX_VALUE);
+		boxButtons.setAlignment(Pos.CENTER_LEFT);
+
+		btnGray = new RadioButton("Grau");
+		btnRed = new RadioButton("Rot");
+		btnGreen = new RadioButton("Grün");
+		btnBlue = new RadioButton("Blau");
+
+		ToggleGroup group = new ToggleGroup();
+		group.getToggles().add(btnGray);
+		group.getToggles().add(btnRed);
+		group.getToggles().add(btnGreen);
+		group.getToggles().add(btnBlue);
+
+		gridInfos = new GridPane();
+		gridInfos.setHgap(10);
+		gridInfos.setVgap(10);
+
+		lblPath = new Label(imageFile.getAbsolutePath());
+		lblPixelAmount = new Label(String.valueOf(info.getPixelCount()));
+		lblMidValue = new Label("N/A");
+		lblMaxValue = new Label("N/A");
+		lblMinValue = new Label("N/A");
+		lblVarianz = new Label("N/A");
+		lblStandardDeviation = new Label("N/A");
+		lblEntropy = new Label("N/A");
 	}
 
-	/*
-	 * Bild laden, Informationen auslesen und darstellen
-	 */
-	private void updateImageInformation() {
-		try {
-			// Bild laden und TextArea + Chart aktualisieren
-			ImageInfo info = new ImageInfo(loadedImage);
+	private void setupChartInteractions() {
+		// Zooming works only via primary mouse button without ctrl held down
+		chartPane = JFXChartUtil.setupZooming(chart, mouseEvent -> {
+			if (mouseEvent.getButton() != MouseButton.PRIMARY || mouseEvent.isShortcutDown())
+				mouseEvent.consume();
+		});
 
-			this.updateImageInformation(imageFile, info);
-			this.updateChartInformation(info);
-
-		} catch (NullPointerException e) {
-			this.fldInformation.setText("Fehler beim Lesen der Datei: " + e.getMessage());
-			e.printStackTrace();
-		}
-
+		ChartPanManager panner = new ChartPanManager(chart);
+		panner.setMouseFilter(mouseEvent -> {
+			if (mouseEvent.getButton() == MouseButton.SECONDARY
+					|| (mouseEvent.getButton() == MouseButton.PRIMARY
+							&& mouseEvent.isShortcutDown())) {
+				// let it through
+			} else {
+				mouseEvent.consume();
+			}
+		});
+		panner.start();
+		JFXChartUtil.addDoublePrimaryClickAutoRangeHandler(chart);
 	}
 
 	// Informationen in TextArea darstellen
-	private void updateImageInformation(final File file, final ImageInfo info) {
-		StringBuilder builder = new StringBuilder();
-
-		builder.append("Pfad: " + file.getAbsolutePath()).append("\n");
-		builder.append("Anzahl Pixel: " + info.getPixelCount()).append("\n");
-		builder.append("Minimaler Grauwert: " + info.getMinGrayValue()).append("\n");
-		builder.append("Maximaler Grauwert: " + info.getMaxGrayValue()).append("\n");
-		builder.append("Mittlerer Grauwert: " + info.getMidGrayValue()).append("\n");
-		builder.append("Varianz: " + info.getVarianz()).append("\n");
-		builder.append("Standardabweichung: " + info.getStandardabweichung()).append("\n");
-		builder.append("Entropie: " + info.getEntropy()).append("\n");
-
-		this.fldInformation.setText(builder.toString());
+	private void updateImageInformation(ImageColor color) {
+		lblMinValue.setText(String.valueOf(info.getMinValue(color)));
+		lblMaxValue.setText(String.valueOf(info.getMaxValue(color)));
+		lblMidValue.setText(String.valueOf(info.getMidValue(color)));
+		lblVarianz.setText(String.valueOf(info.getVarianz(color)));
+		lblStandardDeviation.setText(String.valueOf(info.getStandardabweichung(color)));
+		lblEntropy.setText(String.valueOf(info.getEntropy(color)));
 	}
 
 	// Chart updaten mit neuen Bildinformationen
 	private void updateChartInformation(final ImageInfo info) {
 
-		this.chartGrayValues.getData().clear();
-		this.chartGrayValues.getData().add(createSeries(ImageColor.GRAY, info));
+		this.chart.getData().clear();
+		createSeries(ImageColor.GRAY, info);
+		createSeries(ImageColor.GREEN, info);
+		createSeries(ImageColor.RED, info);
+		createSeries(ImageColor.BLUE, info);
 
-		this.chartRedValues.getData().clear();
-		this.chartRedValues.getData().add(createSeries(ImageColor.RED, info));
-
-		this.chartGreenValues.getData().clear();
-		this.chartGreenValues.getData().add(createSeries(ImageColor.GREEN, info));
-
-		this.chartBlueValues.getData().clear();
-		this.chartBlueValues.getData().add(createSeries(ImageColor.BLUE, info));
 	}
 
 	private Series<Number, Number> createSeries(ImageColor color, final ImageInfo info) {
@@ -160,11 +179,67 @@ public class ImageInfoView {
 			series.getData().add(new XYChart.Data<>(i, count));
 			series.getData().add(new XYChart.Data<>(i, 0));
 		}
+
+		chart.getData().add(series);
+		series.getNode().setStyle("-fx-stroke: " + color.toString() + ";");
+
+		switch (color) {
+		case GRAY:
+			series.getNode().visibleProperty().bind(btnGray.selectedProperty());
+			break;
+		case RED:
+			series.getNode().visibleProperty().bind(btnRed.selectedProperty());
+			break;
+		case GREEN:
+			series.getNode().visibleProperty().bind(btnGreen.selectedProperty());
+			break;
+		case BLUE:
+			series.getNode().visibleProperty().bind(btnBlue.selectedProperty());
+			break;
+		}
+
 		return series;
 	}
 
+	private void setupInteractions() {
+		btnGray.setOnAction(e -> updateImageInformation(ImageColor.GRAY));
+		btnRed.setOnAction(e -> updateImageInformation(ImageColor.RED));
+		btnGreen.setOnAction(e -> updateImageInformation(ImageColor.GREEN));
+		btnBlue.setOnAction(e -> updateImageInformation(ImageColor.BLUE));
+	}
+
 	private void addWidgets() {
-		this.root.getChildren().addAll(this.fldInformation, this.tabCharts);
+		this.boxButtons.getChildren().addAll(btnGray, btnRed, btnGreen, btnBlue);
+
+		gridInfos.add(createBoldLabel("Pixelanzahl:"), 0, 0);
+		gridInfos.add(lblPixelAmount, 1, 0);
+		gridInfos.add(createBoldLabel("Pfad:"), 2, 0);
+		gridInfos.add(lblPath, 3, 0, 3, 1);
+
+		gridInfos.add(createBoldLabel("Min Value:"), 0, 1);
+		gridInfos.add(lblMinValue, 1, 1);
+		gridInfos.add(createBoldLabel("Max Value:"), 2, 1);
+		gridInfos.add(lblMaxValue, 3, 1);
+		gridInfos.add(createBoldLabel("Mid Value:"), 4, 1);
+		gridInfos.add(lblMidValue, 5, 1);
+
+		gridInfos.add(createBoldLabel("Varianz:"), 0, 2);
+		gridInfos.add(lblVarianz, 1, 2);
+		gridInfos.add(createBoldLabel("Standardabweichung:"), 2, 2);
+		gridInfos.add(lblStandardDeviation, 3, 2);
+		gridInfos.add(createBoldLabel("Entropy:"), 4, 2);
+		gridInfos.add(lblEntropy, 5, 2);
+
+		this.root.setRight(boxButtons);
+		this.root.setCenter(chartPane);
+		this.root.setBottom(gridInfos);
+
+	}
+
+	private Label createBoldLabel(String text) {
+		Label lbl = new Label(text);
+		lbl.setStyle("-fx-font-weight: bold");
+		return lbl;
 	}
 
 	public Pane getPane() {

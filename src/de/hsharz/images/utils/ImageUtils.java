@@ -53,15 +53,15 @@ public class ImageUtils {
 
 		int imgWidth;
 		int imgHeight;
-		
-		if (img.getWidth() / fitWidth > img.getHeight() / fitHeight) {
-			int scale = img.getWidth() / fitWidth;
-			imgWidth = img.getWidth() / scale;
-			imgHeight = img.getHeight() / scale;
+
+		if (img.getWidth() / fitWidth > img.getHeight() / (double) fitHeight) {
+			double scale = img.getWidth() / fitWidth;
+			imgWidth = (int) (img.getWidth() / scale);
+			imgHeight = (int) (img.getHeight() / scale);
 		} else {
-			int scale = img.getHeight() / fitHeight;
-			imgWidth = img.getWidth() / scale;
-			imgHeight = img.getHeight() / scale;
+			double scale = img.getHeight() / (double) fitHeight;
+			imgWidth = (int) (img.getWidth() / scale);
+			imgHeight = (int) (img.getHeight() / scale);
 		}
 
 		Image tmp = img.getScaledInstance(imgWidth, imgHeight, Image.SCALE_SMOOTH);

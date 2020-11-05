@@ -6,11 +6,14 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;
-import java.util.function.Function;
 
 import javax.imageio.ImageIO;
 
+import de.hsharz.images.filter.Filter;
+import de.hsharz.images.utils.ZoomableScrollPane;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Button;
@@ -36,14 +39,17 @@ public class ImageTab extends Tab {
 
 	private BorderPane root;
 	private HBox boxMenu;
-	private StackPane paneImage;
+	private StackPane stackPaneImages;
 
 	private Button btnUndo;
 	private Button btnRedo;
 	private ToggleButton btnShowOriginalImage;
 
+	private ScrollPane scrollCurrentImage;
 	private ImageView viewOriginalImage;
 	private ImageView viewCurrentImage;
+
+	final DoubleProperty zoomProperty = new SimpleDoubleProperty(200);
 
 	public ImageTab(File selectedFile) throws IOException {
 		this.selectedFile = Objects.requireNonNull(selectedFile);
@@ -67,18 +73,23 @@ public class ImageTab extends Tab {
 
 		root = new BorderPane();
 		boxMenu = new HBox(5);
-		paneImage = new StackPane();
+		stackPaneImages = new StackPane();
 
 		btnUndo = new Button("Undo");
 		btnRedo = new Button("Redo");
 		btnShowOriginalImage = new ToggleButton("Show Original Image");
 
+		scrollCurrentImage = new ZoomableScrollPane(stackPaneImages);
+
 		viewOriginalImage = new ImageView();
+		viewOriginalImage.preserveRatioProperty().set(true);
 		viewOriginalImage.visibleProperty().bind(btnShowOriginalImage.selectedProperty());
 
 		viewCurrentImage = new ImageView();
+		viewCurrentImage.preserveRatioProperty().set(true);
 		currentImageProperty.addListener((observable, oldValue, newValue) -> viewCurrentImage
 				.setImage(SwingFXUtils.toFXImage(newValue, null)));
+
 	}
 
 	private void setupInteractions() {
@@ -88,10 +99,10 @@ public class ImageTab extends Tab {
 
 	private void addWidgets() {
 		root.setTop(boxMenu);
-		root.setCenter(new ScrollPane(paneImage));
+		root.setCenter(scrollCurrentImage);
 
 		boxMenu.getChildren().addAll(btnUndo, btnRedo, btnShowOriginalImage);
-		paneImage.getChildren().addAll(viewCurrentImage, viewOriginalImage);
+		stackPaneImages.getChildren().addAll(viewCurrentImage, viewOriginalImage);
 
 		setContent(root);
 	}
@@ -115,16 +126,8 @@ public class ImageTab extends Tab {
 
 	}
 
-	public void performImageOperation(Function<BufferedImage, BufferedImage> imageOperation) {
-		BufferedImage newImage = imageOperation.apply(currentImageProperty.get());
-		if (newImage != null) {
-			previousImages.push(currentImageProperty.get());
-			currentImageProperty.set(newImage);
-		}
-	}
-
-	public void performFileOperation(Function<File, BufferedImage> imageFileOperation) {
-		BufferedImage newImage = imageFileOperation.apply(selectedFile);
+	public void performImageOperation(Filter filter) {
+		BufferedImage newImage = filter.perform(currentImageProperty.get());
 		if (newImage != null) {
 			previousImages.push(currentImageProperty.get());
 			currentImageProperty.set(newImage);
