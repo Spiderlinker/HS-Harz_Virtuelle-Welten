@@ -3,11 +3,15 @@ package de.hsharz.images;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import de.hsharz.images.utils.ImageUtils;
 
 /**
  * ImageInfo stellt verschiedene Methoden zur Untersuchung und zum Holen von
@@ -36,6 +40,7 @@ public class ImageInfo {
 
 	// ----- Instanzvariablen -----
 
+	private File imageFile;
 	/** Gegebenes Bild, dessen Werte untersucht werden soll */
 	private BufferedImage image;
 	/** Anzahl der Pixel im gegebenen Bild */
@@ -62,9 +67,23 @@ public class ImageInfo {
 	 * abgerufen werden
 	 *
 	 * @param image Bild, dessen Werte untersucht und abgerufen werden sollen
+	 * @throws IOException
 	 */
 	public ImageInfo(final BufferedImage image) {
+		this(null, image);
+	}
+
+	public ImageInfo(final File imageFile, final BufferedImage image) {
+		this.imageFile = imageFile;
 		this.image = Objects.requireNonNull(image);
+	}
+
+	public File getImageFile() {
+		return imageFile;
+	}
+
+	public BufferedImage getImage() {
+		return image;
 	}
 
 	/**
@@ -276,54 +295,15 @@ public class ImageInfo {
 		int rgb = this.image.getRGB(x, y);
 		switch (color) {
 		case GRAY:
-			return getGrayOfPixel(rgb);
+			return ImageUtils.getGrayOfPixel(rgb);
 		case RED:
-			return getRedOfPixel(rgb);
+			return ImageUtils.getRedOfPixel(rgb);
 		case GREEN:
-			return getGreenOfPixel(rgb);
+			return ImageUtils.getGreenOfPixel(rgb);
 		case BLUE:
-			return getBlueOfPixel(rgb);
+			return ImageUtils.getBlueOfPixel(rgb);
 		}
 		return NOT_CALCULATED;
-	}
-
-	/**
-	 * Liefert den Grauwert des (in RGB-Form) �bergebenen Pixels
-	 *
-	 * @param rgb Pixel in RGB-Form, dessen Grauwert berechnet werden soll
-	 * @return Grauwert des angegebenen Pixels
-	 */
-	private int getGrayOfPixel(final int rgb) {
-
-		// Pixel ist aufgebaut: (int = 4Byte = 32Bit)
-
-		// Meta --- Red ---- Green -- Blue
-		// 00000000 00000000 00000000 00000000
-		// --
-		// rgb >> 16 & 0xFF
-		// Rot wird nach 'ganz rechts geschoben'
-		// und dann mit Maske 0xFF (nur die letzten 8 Bit �bernehmen)
-		// UND-Verkn�pft, damit bleiben nur die Rotwerte �brig
-
-		int r = getRedOfPixel(rgb); // Rot extrahieren
-		int g = getGreenOfPixel(rgb); // Gr�n extrahieren
-		int b = getBlueOfPixel(rgb); // Blau extrahieren
-
-		// Grauwert berechnen
-		// Rot + Gr�n + Blau / Anzahl an Werten (3)
-		return (r + g + b) / 3;
-	}
-
-	private int getRedOfPixel(int rgb) {
-		return (rgb >> 16) & 0xFF;
-	}
-
-	private int getGreenOfPixel(int rgb) {
-		return (rgb >> 8) & 0xFF;
-	}
-
-	private int getBlueOfPixel(int rgb) {
-		return rgb & 0xFF;
 	}
 
 	public BufferedImage getAsGrayImage() {
@@ -337,7 +317,7 @@ public class ImageInfo {
 		for (int x = 0; x < imageCopy.getWidth(); x++) {
 			for (int y = 0; y < imageCopy.getHeight(); y++) {
 				// Get Gray value of current pixel
-				int grayOfPixel = this.getGrayOfPixel(imageCopy.getRGB(x, y));
+				int grayOfPixel = ImageUtils.getGrayOfPixel(imageCopy.getRGB(x, y));
 				// create new rgb-Pixel with only gray values
 				int rgb = (grayOfPixel << 16) + (grayOfPixel << 8) + grayOfPixel;
 

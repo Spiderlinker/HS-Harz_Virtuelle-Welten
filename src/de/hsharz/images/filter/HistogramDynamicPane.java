@@ -18,7 +18,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 
-public class BinaryFilterPane {
+public class HistogramDynamicPane {
 
 	private GridPane root;
 	private Slider slider;
@@ -29,7 +29,7 @@ public class BinaryFilterPane {
 	private ObjectProperty<Image> originalImage = new SimpleObjectProperty<>();
 	private BufferedImage originalBufferedImage;
 
-	public BinaryFilterPane(ImageInfo image) {
+	public HistogramDynamicPane(ImageInfo image) {
 		Objects.requireNonNull(image);
 		this.originalBufferedImage = ImageUtils.resize(image.getImage(), 300, 200);
 		this.originalImage.set(SwingFXUtils.toFXImage(originalBufferedImage, null));
@@ -49,7 +49,7 @@ public class BinaryFilterPane {
 		LayoutUtils.setColumnWidths(root, 50, 50);
 		LayoutUtils.setRowHeight(root, 80, 10, 10);
 
-		slider = new Slider(0, 255, 127);
+		slider = new Slider(0, 30, 15);
 		slider.setShowTickLabels(true);
 		slider.setShowTickMarks(true);
 		slider.setSnapToTicks(true);
@@ -69,12 +69,15 @@ public class BinaryFilterPane {
 	}
 
 	private void setupInteractions() {
+//		slider.setOnMouseReleased(mouseEvent -> {
+//			calculateNewImage((int) slider.getValue());
+//		});
 		slider.valueProperty().addListener(
 				(observable, oldValue, newValue) -> calculateNewImage(newValue.intValue()));
 	}
 
 	private void calculateNewImage(int val) {
-		BufferedImage newImage = new BinaryFilter(val).perform(new ImageInfo(originalBufferedImage))
+		BufferedImage newImage = new DynamicFilter(val).perform(new ImageInfo(originalBufferedImage))
 				.getImage();
 		originalImage.set(SwingFXUtils.toFXImage(newImage, null));
 	}

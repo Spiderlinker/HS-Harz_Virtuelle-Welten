@@ -1,11 +1,7 @@
 package de.hsharz.images;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
-
-import javax.imageio.ImageIO;
 
 import org.gillius.jfxutils.chart.ChartPanManager;
 import org.gillius.jfxutils.chart.JFXChartUtil;
@@ -59,24 +55,12 @@ public class ImageInfoView {
 	// Chart beinhaltet Anzahl der einzelnen Grauwerte
 	private LineChart<Number, Number> chart;
 
-	private File imageFile;
-	private BufferedImage loadedImage;
+	private ImageInfo imageInfo;
 
 	private ImageInfo info;
 
-	public ImageInfoView(File imageFile) throws IOException {
-		this(imageFile, null);
-	}
-
-	public ImageInfoView(File imageFile, BufferedImage image) throws IOException {
-		this.imageFile = Objects.requireNonNull(imageFile);
-		if (image == null) {
-			loadedImage = ImageIO.read(imageFile);
-		} else {
-			loadedImage = image;
-		}
-
-		info = new ImageInfo(loadedImage);
+	public ImageInfoView(ImageInfo imageInfo) throws IOException {
+		this.imageInfo = Objects.requireNonNull(imageInfo);
 
 		this.createWidgets();
 		this.setupInteractions();
@@ -118,7 +102,7 @@ public class ImageInfoView {
 		gridInfos.setHgap(10);
 		gridInfos.setVgap(10);
 
-		lblPath = new Label(imageFile.getAbsolutePath());
+		lblPath = new Label(imageInfo.getImageFile().getAbsolutePath());
 		lblPixelAmount = new Label(String.valueOf(info.getPixelCount()));
 		lblMidValue = new Label("N/A");
 		lblMaxValue = new Label("N/A");

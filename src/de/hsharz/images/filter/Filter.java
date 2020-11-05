@@ -1,9 +1,9 @@
 package de.hsharz.images.filter;
 
-import java.awt.image.BufferedImage;
+import de.hsharz.images.ImageInfo;
 
 public interface Filter {
 
-	BufferedImage perform(BufferedImage img);
-	
+	ImageInfo perform(ImageInfo img);
+
 }

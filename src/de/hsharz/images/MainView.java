@@ -8,6 +8,8 @@ import javax.imageio.ImageIO;
 
 import de.hsharz.images.filter.BinaryFilter;
 import de.hsharz.images.filter.BinaryFilterPane;
+import de.hsharz.images.filter.DynamicFilter;
+import de.hsharz.images.filter.HistogramDynamicPane;
 import de.hsharz.images.utils.PopupWindow;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -39,6 +41,7 @@ public class MainView {
 	private MenuItem itemRectangle;
 	private MenuItem itemGrayImage;
 	private MenuItem itemBinaryImage;
+	private MenuItem itemDynamicHistogram;
 
 	public MainView() {
 		createWidgets();
@@ -66,7 +69,9 @@ public class MainView {
 		menuHighPass = new Menu("Hochpassfilter");
 		itemGrayImage = new MenuItem("Schwarz/Weiß");
 		itemBinaryImage = new MenuItem("Binärbild");
-		menuFilter.getItems().addAll(menuLowPass, menuHighPass, itemGrayImage, itemBinaryImage);
+		itemDynamicHistogram = new MenuItem("Dynamic Histogram");
+		menuFilter.getItems().addAll(menuLowPass, menuHighPass, itemGrayImage, itemBinaryImage,
+				itemDynamicHistogram);
 
 		itemGauss = new MenuItem("Gauss");
 		itemMedian = new MenuItem("Median");
@@ -118,7 +123,8 @@ public class MainView {
 				try {
 					String selectedExtension = fileChooser.getSelectedExtensionFilter()
 							.getExtensions().get(0);
-					saveImageToFile(imageTab.getCurrentImage(), selectedExtension, selectedFile);
+					saveImageToFile(imageTab.getCurrentImage().getImage(), selectedExtension,
+							selectedFile);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -132,8 +138,7 @@ public class MainView {
 			}
 
 			try {
-				ImageInfoView imageInfo = new ImageInfoView(imageTab.getSelectedFile(),
-						imageTab.getCurrentImage());
+				ImageInfoView imageInfo = new ImageInfoView(imageTab.getCurrentImage());
 				new PopupWindow("Bildstatistik / Histogramm", imageInfo.getPane()).show();
 			} catch (IOException e1) {
 				e1.printStackTrace();
@@ -146,8 +151,7 @@ public class MainView {
 				return;
 			}
 
-			imageTab.applyFilter(image -> new ImageInfo(image).getAsGrayImage());
-
+			imageTab.applyFilter(image -> new ImageInfo(image.getAsGrayImage()));
 		});
 
 		itemBinaryImage.setOnAction(e -> {
@@ -162,6 +166,23 @@ public class MainView {
 				popup.close();
 				int selectedValue = binaryFilterPane.getSelectedValue();
 				imageTab.applyFilter(new BinaryFilter(selectedValue));
+			});
+			popup.showAndWait();
+		});
+
+		itemDynamicHistogram.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			HistogramDynamicPane dynamicFilterPane = new HistogramDynamicPane(
+					imageTab.getCurrentImage());
+			PopupWindow popup = new PopupWindow("Binärbild erstellen", dynamicFilterPane.getPane());
+			dynamicFilterPane.getButtonChoose().setOnAction(e2 -> {
+				popup.close();
+				int selectedValue = dynamicFilterPane.getSelectedValue();
+				imageTab.applyFilter(new DynamicFilter(selectedValue));
 			});
 			popup.showAndWait();
 		});

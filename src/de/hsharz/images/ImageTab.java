@@ -1,6 +1,5 @@
 package de.hsharz.images;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -31,11 +30,11 @@ public class ImageTab extends Tab {
 
 	// Deque ('Deck') ist unsynchronized und optimiert für performance
 	// und ist das nicht-thread-safe Äquivalent zu Stack
-	private Deque<BufferedImage> previousImages = new ArrayDeque<>();
-	private Deque<BufferedImage> nextImages = new ArrayDeque<>();
+	private Deque<ImageInfo> previousImages = new ArrayDeque<>();
+	private Deque<ImageInfo> nextImages = new ArrayDeque<>();
 
-	private BufferedImage originalImage;
-	private ObjectProperty<BufferedImage> currentImageProperty = new SimpleObjectProperty<>();
+	private ImageInfo originalImage;
+	private ObjectProperty<ImageInfo> currentImageProperty = new SimpleObjectProperty<>();
 
 	private BorderPane root;
 	private HBox boxMenu;
@@ -62,10 +61,10 @@ public class ImageTab extends Tab {
 	}
 
 	private void loadAndUpdateImages() throws IOException {
-		originalImage = ImageIO.read(selectedFile);
+		originalImage = new ImageInfo(selectedFile, ImageIO.read(selectedFile));
 		currentImageProperty.set(originalImage);
 
-		viewOriginalImage.setImage(SwingFXUtils.toFXImage(originalImage, null));
+		viewOriginalImage.setImage(SwingFXUtils.toFXImage(originalImage.getImage(), null));
 	}
 
 	private void createWidgets() {
@@ -88,7 +87,7 @@ public class ImageTab extends Tab {
 		viewCurrentImage = new ImageView();
 		viewCurrentImage.preserveRatioProperty().set(true);
 		currentImageProperty.addListener((observable, oldValue, newValue) -> viewCurrentImage
-				.setImage(SwingFXUtils.toFXImage(newValue, null)));
+				.setImage(SwingFXUtils.toFXImage(newValue.getImage(), null)));
 
 	}
 
@@ -127,7 +126,7 @@ public class ImageTab extends Tab {
 	}
 
 	public void applyFilter(Filter filter) {
-		BufferedImage newImage = filter.perform(currentImageProperty.get());
+		ImageInfo newImage = filter.perform(currentImageProperty.get());
 		if (newImage != null) {
 			previousImages.push(currentImageProperty.get());
 			currentImageProperty.set(newImage);
@@ -138,7 +137,7 @@ public class ImageTab extends Tab {
 		return selectedFile;
 	}
 
-	public BufferedImage getCurrentImage() {
+	public ImageInfo getCurrentImage() {
 		return currentImageProperty.get();
 	}
 
