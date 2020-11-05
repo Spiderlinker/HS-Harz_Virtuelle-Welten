@@ -126,7 +126,7 @@ public class ImageTab extends Tab {
 
 	}
 
-	public void performImageOperation(Filter filter) {
+	public void applyFilter(Filter filter) {
 		BufferedImage newImage = filter.perform(currentImageProperty.get());
 		if (newImage != null) {
 			previousImages.push(currentImageProperty.get());

@@ -146,7 +146,7 @@ public class MainView {
 				return;
 			}
 
-			imageTab.performImageOperation(image -> new ImageInfo(image).getAsGrayImage());
+			imageTab.applyFilter(image -> new ImageInfo(image).getAsGrayImage());
 
 		});
 
@@ -161,7 +161,7 @@ public class MainView {
 			binaryFilterPane.getButtonChoose().setOnAction(e2 -> {
 				popup.close();
 				int selectedValue = binaryFilterPane.getSelectedValue();
-				imageTab.performImageOperation(new BinaryFilter(selectedValue));
+				imageTab.applyFilter(new BinaryFilter(selectedValue));
 			});
 			popup.showAndWait();
 		});
