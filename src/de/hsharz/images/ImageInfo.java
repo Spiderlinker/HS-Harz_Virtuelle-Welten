@@ -1,8 +1,6 @@
 package de.hsharz.images;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -304,29 +302,6 @@ public class ImageInfo {
 			return ImageUtils.getBlueOfPixel(rgb);
 		}
 		return NOT_CALCULATED;
-	}
-
-	public BufferedImage getAsGrayImage() {
-		// Copy BufferdImage to modify the copy and not the original iamge
-		ColorModel colorModel = this.image.getColorModel();
-		WritableRaster raster = this.image.copyData(null);
-		boolean isAlphaPremultiplied = colorModel.isAlphaPremultiplied();
-		BufferedImage imageCopy = new BufferedImage(colorModel, raster, isAlphaPremultiplied, null);
-
-		// tranform every pixel to gray
-		for (int x = 0; x < imageCopy.getWidth(); x++) {
-			for (int y = 0; y < imageCopy.getHeight(); y++) {
-				// Get Gray value of current pixel
-				int grayOfPixel = ImageUtils.getGrayOfPixel(imageCopy.getRGB(x, y));
-				// create new rgb-Pixel with only gray values
-				int rgb = (grayOfPixel << 16) + (grayOfPixel << 8) + grayOfPixel;
-
-				// Update current Pixel to created gray-pixel
-				imageCopy.setRGB(x, y, rgb);
-			}
-		}
-
-		return imageCopy;
 	}
 
 	// ----- Hilfsmethoden -----

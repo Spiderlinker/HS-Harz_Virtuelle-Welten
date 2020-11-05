@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import de.hsharz.images.filter.BinaryFilter;
 import de.hsharz.images.filter.BinaryFilterPane;
 import de.hsharz.images.filter.DynamicFilter;
+import de.hsharz.images.filter.GrayScaleFilter;
 import de.hsharz.images.filter.HistogramDynamicPane;
 import de.hsharz.images.utils.PopupWindow;
 import javafx.scene.control.Menu;
@@ -67,7 +68,7 @@ public class MainView {
 		menuFilter = new Menu("Filter");
 		menuLowPass = new Menu("Tiefpassfilter");
 		menuHighPass = new Menu("Hochpassfilter");
-		itemGrayImage = new MenuItem("Schwarz/Weiß");
+		itemGrayImage = new MenuItem("Graustufen");
 		itemBinaryImage = new MenuItem("Binärbild");
 		itemDynamicHistogram = new MenuItem("Dynamic Histogram");
 		menuFilter.getItems().addAll(menuLowPass, menuHighPass, itemGrayImage, itemBinaryImage,
@@ -151,7 +152,7 @@ public class MainView {
 				return;
 			}
 
-			imageTab.applyFilter(image -> new ImageInfo(image.getAsGrayImage()));
+			imageTab.applyFilter(new GrayScaleFilter());
 		});
 
 		itemBinaryImage.setOnAction(e -> {
