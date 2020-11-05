@@ -57,8 +57,6 @@ public class ImageInfoView {
 
 	private ImageInfo imageInfo;
 
-	private ImageInfo info;
-
 	public ImageInfoView(ImageInfo imageInfo) throws IOException {
 		this.imageInfo = Objects.requireNonNull(imageInfo);
 
@@ -66,7 +64,7 @@ public class ImageInfoView {
 		this.setupInteractions();
 		this.addWidgets();
 
-		this.updateChartInformation(info);
+		this.updateChartInformation(imageInfo);
 		this.btnGray.fire();
 	}
 
@@ -102,8 +100,9 @@ public class ImageInfoView {
 		gridInfos.setHgap(10);
 		gridInfos.setVgap(10);
 
-		lblPath = new Label(imageInfo.getImageFile().getAbsolutePath());
-		lblPixelAmount = new Label(String.valueOf(info.getPixelCount()));
+		lblPath = new Label(imageInfo.getImageFile() == null ? "modified"
+				: imageInfo.getImageFile().getAbsolutePath());
+		lblPixelAmount = new Label(String.valueOf(imageInfo.getPixelCount()));
 		lblMidValue = new Label("N/A");
 		lblMaxValue = new Label("N/A");
 		lblMinValue = new Label("N/A");
@@ -135,12 +134,12 @@ public class ImageInfoView {
 
 	// Informationen in TextArea darstellen
 	private void updateImageInformation(ImageColor color) {
-		lblMinValue.setText(String.valueOf(info.getMinValue(color)));
-		lblMaxValue.setText(String.valueOf(info.getMaxValue(color)));
-		lblMidValue.setText(String.valueOf(info.getMidValue(color)));
-		lblVarianz.setText(String.valueOf(info.getVarianz(color)));
-		lblStandardDeviation.setText(String.valueOf(info.getStandardabweichung(color)));
-		lblEntropy.setText(String.valueOf(info.getEntropy(color)));
+		lblMinValue.setText(String.valueOf(imageInfo.getMinValue(color)));
+		lblMaxValue.setText(String.valueOf(imageInfo.getMaxValue(color)));
+		lblMidValue.setText(String.valueOf(imageInfo.getMidValue(color)));
+		lblVarianz.setText(String.valueOf(imageInfo.getVarianz(color)));
+		lblStandardDeviation.setText(String.valueOf(imageInfo.getStandardabweichung(color)));
+		lblEntropy.setText(String.valueOf(imageInfo.getEntropy(color)));
 	}
 
 	// Chart updaten mit neuen Bildinformationen
