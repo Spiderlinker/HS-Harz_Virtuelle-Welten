@@ -1,9 +1,9 @@
 package de.hsharz.images.filter;
 
-import de.hsharz.images.ImageInfo;
+import de.hsharz.images.ui.ImageInfo;
 
 public interface Filter {
 
-	ImageInfo perform(ImageInfo img);
+	 ImageInfo perform(ImageInfo imageInfo);
 
 }

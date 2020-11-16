@@ -1,4 +1,4 @@
-package de.hsharz.images;
+package de.hsharz.images.ui;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import de.hsharz.images.utils.ImageUtils;
+import de.hsharz.images.filter.utils.ImageUtils;
 
 /**
  * ImageInfo stellt verschiedene Methoden zur Untersuchung und zum Holen von
@@ -282,26 +282,8 @@ public class ImageInfo {
 		return this.colorValueCounts.get(c);
 	}
 
-	/**
-	 * Liefert den Grauwert des Pixels an der angegebenen Stelle (x, y).
-	 *
-	 * @param x x-Koordinate des Pixels
-	 * @param y y-Koordinate des Pixels
-	 * @return Grauwert des angegebenen Pixels
-	 */
 	private int getColorValueOfPixel(ImageColor color, int x, int y) {
-		int rgb = this.image.getRGB(x, y);
-		switch (color) {
-		case GRAY:
-			return ImageUtils.getGrayOfPixel(rgb);
-		case RED:
-			return ImageUtils.getRedOfPixel(rgb);
-		case GREEN:
-			return ImageUtils.getGreenOfPixel(rgb);
-		case BLUE:
-			return ImageUtils.getBlueOfPixel(rgb);
-		}
-		return NOT_CALCULATED;
+		return ImageUtils.getColorValueOfPixel(color, image.getRGB(x, y));
 	}
 
 	// ----- Hilfsmethoden -----

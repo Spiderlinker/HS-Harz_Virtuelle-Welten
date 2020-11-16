@@ -1,4 +1,4 @@
-package de.hsharz.images;
+package de.hsharz.images.ui;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -6,11 +6,18 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import de.hsharz.images.filter.BinaryFilter;
-import de.hsharz.images.filter.BinaryFilterPane;
-import de.hsharz.images.filter.DynamicFilter;
-import de.hsharz.images.filter.GrayScaleFilter;
-import de.hsharz.images.filter.HistogramDynamicPane;
+import de.hsharz.images.filter.grayvaluetransformation.BinaryFilter;
+import de.hsharz.images.filter.grayvaluetransformation.DynamicFilter;
+import de.hsharz.images.filter.grayvaluetransformation.GrayScaleFilter;
+import de.hsharz.images.filter.grayvaluetransformation.HistogrammEqualization;
+import de.hsharz.images.filter.highpass.Laplace4Filter;
+import de.hsharz.images.filter.highpass.Laplace8Filter;
+import de.hsharz.images.filter.highpass.SobelFilter;
+import de.hsharz.images.filter.lowpass.GaussFilter;
+import de.hsharz.images.filter.lowpass.RectangularFilter;
+import de.hsharz.images.ui.ImageInfo.ImageColor;
+import de.hsharz.images.ui.filter.BinaryFilterPane;
+import de.hsharz.images.ui.filter.HistogramDynamicPane;
 import de.hsharz.images.utils.PopupWindow;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -37,12 +44,20 @@ public class MainView {
 	private MenuItem itemLoadFile;
 	private MenuItem itemSaveFileAs;
 	private MenuItem itemShowStatistics;
+
 	private MenuItem itemGauss;
-	private MenuItem itemMedian;
+//	private MenuItem itemMedian;
 	private MenuItem itemRectangle;
+
+	private MenuItem itemLaplace4;
+	private MenuItem itemLaplace8;
+	private MenuItem itemSobel;
+
 	private MenuItem itemGrayImage;
 	private MenuItem itemBinaryImage;
 	private MenuItem itemDynamicHistogram;
+//	private MenuItem itemDynamicColorHistogram;
+	private MenuItem itemHistogramEqualization;
 
 	public MainView() {
 		createWidgets();
@@ -71,13 +86,21 @@ public class MainView {
 		itemGrayImage = new MenuItem("Graustufen");
 		itemBinaryImage = new MenuItem("Binärbild");
 		itemDynamicHistogram = new MenuItem("Dynamic Histogram");
+//		itemDynamicColorHistogram = new MenuItem("Dynamic Color Histogram");
+		itemHistogramEqualization = new MenuItem("Histogrammausgleich");
 		menuFilter.getItems().addAll(menuLowPass, menuHighPass, itemGrayImage, itemBinaryImage,
-				itemDynamicHistogram);
+				itemDynamicHistogram/* , itemDynamicColorHistogram */, itemHistogramEqualization);
 
 		itemGauss = new MenuItem("Gauss");
-		itemMedian = new MenuItem("Median");
+//		itemMedian = new MenuItem("Median");
 		itemRectangle = new MenuItem("Rechteck");
-		menuLowPass.getItems().addAll(itemGauss, itemMedian, itemRectangle);
+		menuLowPass.getItems().addAll(itemGauss, itemRectangle);
+
+		itemLaplace4 = new MenuItem("Laplace 4er");
+		itemLaplace8 = new MenuItem("Laplace 8er");
+
+		itemSobel = new MenuItem("Sobelfilter");
+		menuHighPass.getItems().addAll(itemLaplace4, itemLaplace8, itemSobel);
 
 		menuBar.getMenus().addAll(menuFile, menuStatistics, menuFilter);
 	}
@@ -122,10 +145,8 @@ public class MainView {
 			System.out.println(selectedFile);
 			if (selectedFile != null) {
 				try {
-					String selectedExtension = fileChooser.getSelectedExtensionFilter()
-							.getExtensions().get(0);
-					saveImageToFile(imageTab.getCurrentImage().getImage(), selectedExtension,
-							selectedFile);
+					String selectedExtension = fileChooser.getSelectedExtensionFilter().getExtensions().get(0);
+					saveImageToFile(imageTab.getCurrentImage().getImage(), selectedExtension, selectedFile);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -177,8 +198,7 @@ public class MainView {
 				return;
 			}
 
-			HistogramDynamicPane dynamicFilterPane = new HistogramDynamicPane(
-					imageTab.getCurrentImage());
+			HistogramDynamicPane dynamicFilterPane = new HistogramDynamicPane(imageTab.getCurrentImage());
 			PopupWindow popup = new PopupWindow("Binärbild erstellen", dynamicFilterPane.getPane());
 			dynamicFilterPane.getButtonChoose().setOnAction(e2 -> {
 				popup.close();
@@ -187,6 +207,69 @@ public class MainView {
 			});
 			popup.showAndWait();
 		});
+
+		itemRectangle.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new RectangularFilter());
+		});
+
+		itemGauss.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new GaussFilter());
+		});
+
+		itemLaplace4.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new Laplace4Filter());
+		});
+
+		itemLaplace8.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new Laplace8Filter());
+		});
+
+		itemSobel.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new SobelFilter());
+		});
+
+		itemHistogramEqualization.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new HistogrammEqualization(ImageColor.RED));
+		});
+
+//		itemDynamicColorHistogram.setOnAction(e -> {
+//			ImageTab imageTab = getSelectedTab();
+//			if (imageTab == null) {
+//				return;
+//			}
+//			
+//			imageTab.applyFilter(new DynamicColorFilter());
+//		});
 	}
 
 	private ImageTab getSelectedTab() {
@@ -203,8 +286,7 @@ public class MainView {
 		tabPane.getSelectionModel().selectLast();
 	}
 
-	private void saveImageToFile(BufferedImage image, String extension, File saveTo)
-			throws IOException {
+	private void saveImageToFile(BufferedImage image, String extension, File saveTo) throws IOException {
 		System.out.println("Saving to file: " + saveTo + " with extension: " + extension);
 		ImageIO.write(image, extension.replace("*.", ""), saveTo);
 	}

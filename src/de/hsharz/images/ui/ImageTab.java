@@ -1,4 +1,4 @@
-package de.hsharz.images;
+package de.hsharz.images.ui;
 
 import java.io.File;
 import java.io.IOException;

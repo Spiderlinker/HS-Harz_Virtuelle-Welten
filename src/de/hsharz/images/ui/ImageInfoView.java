@@ -1,4 +1,4 @@
-package de.hsharz.images;
+package de.hsharz.images.ui;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -7,7 +7,7 @@ import org.gillius.jfxutils.chart.ChartPanManager;
 import org.gillius.jfxutils.chart.JFXChartUtil;
 import org.gillius.jfxutils.chart.StableTicksAxis;
 
-import de.hsharz.images.ImageInfo.ImageColor;
+import de.hsharz.images.ui.ImageInfo.ImageColor;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.LineChart;
@@ -28,7 +28,9 @@ import javafx.scene.layout.VBox;
  * dar, über das er ein neues Bild laden kann. Dieses Bild wird analysiert und
  * verschiedenste Informationen über Grauwerte dem Benutzer angezeigt.
  *
- * @author Oliver Lindemann u33873@hs-harz.de Matr.Nr.: 26264
+ * @author Oliver Lindemann 
+ * u33873@hs-harz.de 
+ * Matr.Nr.: 26264
  */
 public class ImageInfoView {
 

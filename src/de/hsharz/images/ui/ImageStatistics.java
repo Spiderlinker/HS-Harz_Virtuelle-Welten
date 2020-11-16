@@ -1,4 +1,4 @@
-package de.hsharz.images;
+package de.hsharz.images.ui;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
