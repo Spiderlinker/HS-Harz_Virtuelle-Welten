@@ -18,6 +18,7 @@ import de.hsharz.images.filter.lowpass.RectangularFilter;
 import de.hsharz.images.ui.ImageInfo.ImageColor;
 import de.hsharz.images.ui.filter.BinaryFilterPane;
 import de.hsharz.images.ui.filter.HistogramDynamicPane;
+import de.hsharz.images.ui.filter.HistogramEqualizationPane;
 import de.hsharz.images.utils.PopupWindow;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -37,6 +38,7 @@ public class MainView {
 	private MenuBar menuBar;
 	private Menu menuFile;
 	private Menu menuStatistics;
+	private Menu menuColors;
 	private Menu menuFilter;
 	private Menu menuLowPass;
 	private Menu menuHighPass;
@@ -55,7 +57,7 @@ public class MainView {
 
 	private MenuItem itemGrayImage;
 	private MenuItem itemBinaryImage;
-	private MenuItem itemDynamicHistogram;
+	private MenuItem itemGrayScaleTransformation;
 //	private MenuItem itemDynamicColorHistogram;
 	private MenuItem itemHistogramEqualization;
 
@@ -80,16 +82,18 @@ public class MainView {
 		itemShowStatistics = new MenuItem("Statistik einblenden");
 		menuStatistics.getItems().add(itemShowStatistics);
 
+		menuColors = new Menu("Farben");
+		itemGrayImage = new MenuItem("Graustufen");
+		itemBinaryImage = new MenuItem("Binärbild");
+		itemGrayScaleTransformation = new MenuItem("Grauwerttransformation");
+		itemHistogramEqualization = new MenuItem("Histogrammausgleich");
+		menuColors.getItems().addAll(itemHistogramEqualization, itemGrayScaleTransformation, itemGrayImage,
+				itemBinaryImage);
+
 		menuFilter = new Menu("Filter");
 		menuLowPass = new Menu("Tiefpassfilter");
 		menuHighPass = new Menu("Hochpassfilter");
-		itemGrayImage = new MenuItem("Graustufen");
-		itemBinaryImage = new MenuItem("Binärbild");
-		itemDynamicHistogram = new MenuItem("Dynamic Histogram");
-//		itemDynamicColorHistogram = new MenuItem("Dynamic Color Histogram");
-		itemHistogramEqualization = new MenuItem("Histogrammausgleich");
-		menuFilter.getItems().addAll(menuLowPass, menuHighPass, itemGrayImage, itemBinaryImage,
-				itemDynamicHistogram/* , itemDynamicColorHistogram */, itemHistogramEqualization);
+		menuFilter.getItems().addAll(menuLowPass, menuHighPass);
 
 		itemGauss = new MenuItem("Gauss");
 //		itemMedian = new MenuItem("Median");
@@ -102,7 +106,7 @@ public class MainView {
 		itemSobel = new MenuItem("Sobelfilter");
 		menuHighPass.getItems().addAll(itemLaplace4, itemLaplace8, itemSobel);
 
-		menuBar.getMenus().addAll(menuFile, menuStatistics, menuFilter);
+		menuBar.getMenus().addAll(menuFile, menuStatistics, menuColors, menuFilter);
 	}
 
 	private void setupInteractions() {
@@ -192,7 +196,7 @@ public class MainView {
 			popup.showAndWait();
 		});
 
-		itemDynamicHistogram.setOnAction(e -> {
+		itemGrayScaleTransformation.setOnAction(e -> {
 			ImageTab imageTab = getSelectedTab();
 			if (imageTab == null) {
 				return;
@@ -259,17 +263,16 @@ public class MainView {
 				return;
 			}
 
-			imageTab.applyFilter(new HistogrammEqualization(ImageColor.RED));
+			HistogramEqualizationPane histogramEqualizationPane = new HistogramEqualizationPane(
+					imageTab.getCurrentImage());
+			PopupWindow popup = new PopupWindow("Histogram Equalization", histogramEqualizationPane.getPane());
+			histogramEqualizationPane.getButtonChoose().setOnAction(e2 -> {
+				popup.close();
+				ImageColor selectedValue = histogramEqualizationPane.getSelectedValue();
+				imageTab.applyFilter(new HistogrammEqualization(selectedValue));
+			});
+			popup.showAndWait();
 		});
-
-//		itemDynamicColorHistogram.setOnAction(e -> {
-//			ImageTab imageTab = getSelectedTab();
-//			if (imageTab == null) {
-//				return;
-//			}
-//			
-//			imageTab.applyFilter(new DynamicColorFilter());
-//		});
 	}
 
 	private ImageTab getSelectedTab() {
