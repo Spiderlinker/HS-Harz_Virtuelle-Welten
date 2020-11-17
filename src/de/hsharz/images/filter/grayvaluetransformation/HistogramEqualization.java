@@ -6,11 +6,11 @@ import de.hsharz.images.filter.AbstractFilter;
 import de.hsharz.images.filter.utils.ImageUtils;
 import de.hsharz.images.ui.ImageInfo.ImageColor;
 
-public class HistogrammEqualization extends AbstractFilter {
+public class HistogramEqualization extends AbstractFilter {
 
 	private ImageColor color;
 
-	public HistogrammEqualization(ImageColor color) {
+	public HistogramEqualization(ImageColor color) {
 		this.color = color;
 	}
 

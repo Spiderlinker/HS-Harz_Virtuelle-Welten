@@ -3,7 +3,7 @@ package de.hsharz.images.ui.filter;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
-import de.hsharz.images.filter.grayvaluetransformation.HistogrammEqualization;
+import de.hsharz.images.filter.grayvaluetransformation.HistogramEqualization;
 import de.hsharz.images.filter.utils.ImageUtils;
 import de.hsharz.images.ui.ImageInfo;
 import de.hsharz.images.ui.ImageInfo.ImageColor;
@@ -88,7 +88,7 @@ public class HistogramEqualizationPane {
 	private void calculateNewImage(ImageColor val) {
 		currentVal = val;
 		btnChoose.setDisable(false);
-		BufferedImage newImage = new HistogrammEqualization(val).perform(new ImageInfo(originalBufferedImage))
+		BufferedImage newImage = new HistogramEqualization(val).perform(new ImageInfo(originalBufferedImage))
 				.getImage();
 		originalImage.set(SwingFXUtils.toFXImage(newImage, null));
 	}

@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import de.hsharz.images.filter.grayvaluetransformation.BinaryFilter;
 import de.hsharz.images.filter.grayvaluetransformation.DynamicFilter;
 import de.hsharz.images.filter.grayvaluetransformation.GrayScaleFilter;
-import de.hsharz.images.filter.grayvaluetransformation.HistogrammEqualization;
+import de.hsharz.images.filter.grayvaluetransformation.HistogramEqualization;
 import de.hsharz.images.filter.highpass.Laplace4Filter;
 import de.hsharz.images.filter.highpass.Laplace8Filter;
 import de.hsharz.images.filter.highpass.SobelFilter;
@@ -269,7 +269,7 @@ public class MainView {
 			histogramEqualizationPane.getButtonChoose().setOnAction(e2 -> {
 				popup.close();
 				ImageColor selectedValue = histogramEqualizationPane.getSelectedValue();
-				imageTab.applyFilter(new HistogrammEqualization(selectedValue));
+				imageTab.applyFilter(new HistogramEqualization(selectedValue));
 			});
 			popup.showAndWait();
 		});
