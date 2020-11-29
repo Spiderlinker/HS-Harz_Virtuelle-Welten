@@ -15,6 +15,8 @@ import de.hsharz.images.filter.highpass.Laplace8Filter;
 import de.hsharz.images.filter.highpass.SobelFilter;
 import de.hsharz.images.filter.lowpass.GaussFilter;
 import de.hsharz.images.filter.lowpass.RectangularFilter;
+import de.hsharz.images.filter.morphological.DilatationFilter;
+import de.hsharz.images.filter.morphological.ErosionFilter;
 import de.hsharz.images.ui.ImageInfo.ImageColor;
 import de.hsharz.images.ui.filter.BinaryFilterPane;
 import de.hsharz.images.ui.filter.HistogramDynamicPane;
@@ -42,6 +44,7 @@ public class MainView {
 	private Menu menuFilter;
 	private Menu menuLowPass;
 	private Menu menuHighPass;
+	private Menu menuMorphological;
 
 	private MenuItem itemLoadFile;
 	private MenuItem itemSaveFileAs;
@@ -54,6 +57,9 @@ public class MainView {
 	private MenuItem itemLaplace4;
 	private MenuItem itemLaplace8;
 	private MenuItem itemSobel;
+	
+	private MenuItem itemErosion;
+	private MenuItem itemDilatation;
 
 	private MenuItem itemGrayImage;
 	private MenuItem itemBinaryImage;
@@ -93,7 +99,8 @@ public class MainView {
 		menuFilter = new Menu("Filter");
 		menuLowPass = new Menu("Tiefpassfilter");
 		menuHighPass = new Menu("Hochpassfilter");
-		menuFilter.getItems().addAll(menuLowPass, menuHighPass);
+		menuMorphological = new Menu("Morphologische Filter");
+		menuFilter.getItems().addAll(menuLowPass, menuHighPass, menuMorphological);
 
 		itemGauss = new MenuItem("Gauss");
 //		itemMedian = new MenuItem("Median");
@@ -105,6 +112,10 @@ public class MainView {
 
 		itemSobel = new MenuItem("Sobelfilter");
 		menuHighPass.getItems().addAll(itemLaplace4, itemLaplace8, itemSobel);
+
+		itemErosion = new MenuItem("Erosion");
+		itemDilatation = new MenuItem("Dilatation");
+		menuMorphological.getItems().addAll(itemDilatation, itemErosion);
 
 		menuBar.getMenus().addAll(menuFile, menuStatistics, menuColors, menuFilter);
 	}
@@ -273,6 +284,27 @@ public class MainView {
 			});
 			popup.showAndWait();
 		});
+		
+		itemDilatation.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new BinaryFilter(127));
+			imageTab.applyFilter(new DilatationFilter());
+		});
+		
+		itemErosion.setOnAction(e -> {
+			ImageTab imageTab = getSelectedTab();
+			if (imageTab == null) {
+				return;
+			}
+
+			imageTab.applyFilter(new BinaryFilter(127));
+			imageTab.applyFilter(new ErosionFilter());
+		});
+
 	}
 
 	private ImageTab getSelectedTab() {
