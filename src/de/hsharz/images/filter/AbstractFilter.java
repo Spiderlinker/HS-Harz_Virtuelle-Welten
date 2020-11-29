@@ -10,13 +10,17 @@ public abstract class AbstractFilter implements Filter {
 	private ImageInfo imageInfo;
 	private BufferedImage outputImage;
 
+	protected void setOutputImage(BufferedImage outputImage) {
+		this.outputImage = outputImage;
+	}
+
 	protected BufferedImage getOutputImage() {
 		if (outputImage == null) {
 			outputImage = ImageUtils.getCopyOf(imageInfo.getImage());
 		}
 		return outputImage;
 	}
-	
+
 	protected ImageInfo getImageInfo() {
 		return imageInfo;
 	}
