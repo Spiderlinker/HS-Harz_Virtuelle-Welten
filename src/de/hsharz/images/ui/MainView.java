@@ -127,7 +127,7 @@ public class MainView {
 			FileChooser fileChooser = new FileChooser();
 			fileChooser.setTitle("Bild auswählen");
 			fileChooser.getExtensionFilters().addAll( // Eigene ExtensionFilters hinzuf�gen
-					new ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"), // Bildateien
+					new ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.bmp"), // Bildateien
 					new ExtensionFilter("All Files", "*.*") // Alle Dateien
 			);
 			File selectedFile = fileChooser.showOpenDialog(null);
