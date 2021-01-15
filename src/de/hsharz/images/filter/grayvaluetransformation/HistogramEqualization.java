@@ -39,21 +39,15 @@ public class HistogramEqualization extends AbstractFilter {
 
 	@Override
 	public void transformOutputImage(BufferedImage inputImage) {
-		int result;
-		float newPixelVal;
-
-		int currentPixelVal;
-
-		// Now calculate the new intensity values
 		for (int x = 0; x < inputImage.getWidth(); x++) {
 			for (int y = 0; y < inputImage.getHeight(); y++) {
-				currentPixelVal = ImageUtils.getColorValueOfPixel(color, inputImage.getRGB(x, y));
-				newPixelVal = 0;
+				int currentPixelVal = ImageUtils.getColorValueOfPixel(color, inputImage.getRGB(x, y));
+				float newPixelVal = 0;
 				for (int j = 0; j < (currentPixelVal + 1); j++) {
 					newPixelVal += getImageInfo().getColorValueCount(color)[j]
 							/ (double) getImageInfo().getPixelCount();
 				}
-				result = (int) (newPixelVal * 255);
+				int result = (int) (newPixelVal * 255);
 
 				int origRgb = inputImage.getRGB(x, y);
 				int newRgb = insertRgbInOriginalRgb(origRgb, result);
@@ -64,3 +58,4 @@ public class HistogramEqualization extends AbstractFilter {
 	}
 
 }
+

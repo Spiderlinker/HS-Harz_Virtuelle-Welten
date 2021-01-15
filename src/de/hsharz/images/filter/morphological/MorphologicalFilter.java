@@ -14,18 +14,25 @@ public abstract class MorphologicalFilter extends AbstractMaskFilter {
 
 	@Override
 	protected void transformOutputImage(BufferedImage inputImage) {
-		for (int x = 1; x < inputImage.getWidth() - 1; x++) {
-			for (int y = 1; y < inputImage.getHeight() - 1; y++) {
+		for (int x = 0; x < inputImage.getWidth(); x++) {
+			for (int y = 0; y < inputImage.getHeight(); y++) {
 
-				double factor = 0;
+				double maskFactor = 0;
+				
 				boolean maskMatches = false;
 				for (int x1 = 0; x1 < mask.length; x1++) {
+					int finX = x - mask.length / 2 + x1;
+					if (ImageUtils.isOutOfBounds(inputImage.getWidth(), finX)) {
+						continue;
+					}
 					for (int y1 = 0; y1 < mask[x1].length; y1++) {
+						int finY = y - mask[x1].length / 2 + y1;
+						if (ImageUtils.isOutOfBounds(inputImage.getHeight(), finY)) {
+							continue;
+						}
 
-						factor = mask[x1][y1];
-						if (ImageUtils.getGrayOfPixel(
-								inputImage.getRGB(x - mask.length / 2 + x1, y - mask[x1].length / 2 + y1))
-								* factor == getColor()) {
+						maskFactor = mask[x1][y1];
+						if (ImageUtils.getGrayOfPixel(inputImage.getRGB(finX, finY)) * maskFactor == getColor()) {
 							maskMatches = true;
 							break;
 						}
@@ -33,7 +40,7 @@ public abstract class MorphologicalFilter extends AbstractMaskFilter {
 				}
 
 				if (maskMatches) {
-					int newColor = 0xff000000 | (getColor() << 16) | (getColor() << 8) | getColor();
+					int newColor = ImageUtils.colorToRgbWithAlpha(getColor());
 					getOutputImage().setRGB(x, y, newColor);
 				}
 			}
