@@ -3,8 +3,8 @@ package de.hsharz.images.ui.filter;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
-import de.hsharz.images.filter.grayvaluetransformation.BinaryFilter;
 import de.hsharz.images.filter.utils.ImageUtils;
+import de.hsharz.images.pointoperator.BinaryFilter;
 import de.hsharz.images.ui.ImageInfo;
 import de.hsharz.images.utils.LayoutUtils;
 import javafx.beans.property.ObjectProperty;

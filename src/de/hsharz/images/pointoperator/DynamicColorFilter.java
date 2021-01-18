@@ -1,4 +1,4 @@
-package de.hsharz.images.filter.grayvaluetransformation;
+package de.hsharz.images.pointoperator;
 
 import java.awt.image.BufferedImage;
 

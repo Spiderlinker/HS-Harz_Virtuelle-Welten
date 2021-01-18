@@ -6,10 +6,6 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import de.hsharz.images.filter.grayvaluetransformation.BinaryFilter;
-import de.hsharz.images.filter.grayvaluetransformation.DynamicFilter;
-import de.hsharz.images.filter.grayvaluetransformation.GrayScaleFilter;
-import de.hsharz.images.filter.grayvaluetransformation.HistogramEqualization;
 import de.hsharz.images.filter.highpass.Laplace4Filter;
 import de.hsharz.images.filter.highpass.Laplace8Filter;
 import de.hsharz.images.filter.highpass.SobelFilter;
@@ -17,6 +13,10 @@ import de.hsharz.images.filter.lowpass.GaussFilter;
 import de.hsharz.images.filter.lowpass.RectangularFilter;
 import de.hsharz.images.filter.morphological.DilatationFilter;
 import de.hsharz.images.filter.morphological.ErosionFilter;
+import de.hsharz.images.pointoperator.BinaryFilter;
+import de.hsharz.images.pointoperator.DynamicFilter;
+import de.hsharz.images.pointoperator.GrayScaleFilter;
+import de.hsharz.images.pointoperator.HistogramEqualization;
 import de.hsharz.images.ui.ImageInfo.ImageColor;
 import de.hsharz.images.ui.filter.BinaryFilterPane;
 import de.hsharz.images.ui.filter.HistogramDynamicPane;

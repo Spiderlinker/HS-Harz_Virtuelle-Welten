@@ -3,8 +3,8 @@ package de.hsharz.images.ui.filter;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
-import de.hsharz.images.filter.grayvaluetransformation.HistogramEqualization;
 import de.hsharz.images.filter.utils.ImageUtils;
+import de.hsharz.images.pointoperator.HistogramEqualization;
 import de.hsharz.images.ui.ImageInfo;
 import de.hsharz.images.ui.ImageInfo.ImageColor;
 import de.hsharz.images.utils.LayoutUtils;
